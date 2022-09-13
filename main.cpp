@@ -104,6 +104,7 @@ BigInt::BigInt(const std::string& num2) {
 //
 //std::ostream& operator<<(std::ostream& o, const BigInt& i);
 int main(){
-    BigInt bi("7899");
+    //BigInt bi("7899");
+    BigInt bi(45);
     std :: cout << bi.number;
 }
