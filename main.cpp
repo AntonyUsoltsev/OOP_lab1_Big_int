@@ -1,5 +1,6 @@
 #include <iostream>
 #include <string>
+//#include <basic_string.h>
 #include <vector>
 #include <algorithm>
 
@@ -14,9 +15,11 @@ public:
 
     explicit BigInt(long);
 
-    explicit BigInt(const std::string &); // бросать исключение std::invalid_argument при ошибке
+    explicit BigInt(std::string); // бросать исключение std::invalid_argument при ошибке
 
-//    BigInt(const BigInt &);
+    BigInt(const BigInt &);
+
+
 //
 //    ~BigInt();
 //
@@ -24,7 +27,7 @@ public:
 //
 //    BigInt operator~() const;
 //
-//    BigInt &operator++();
+    //  BigInt &operator++();
 //
 //    const BigInt operator++(int) const;
 //
@@ -86,7 +89,7 @@ BigInt::BigInt(long num1) {
     std::reverse(number.begin(), number.end());
 }
 
-BigInt::BigInt(const std::string &num2) {
+BigInt::BigInt(std::string num2) {
     if (num2.empty() || (num2[0] == '-' && num2.length() < 2))
         throw std::invalid_argument("string is too short");
 
@@ -99,13 +102,36 @@ BigInt::BigInt(const std::string &num2) {
 
     if (num2[0] == '-') {
         sign = '-';
-        for (int i = 1; i < num2.length(); i += 9)
-            number.push_back(std::stoi(num2.substr(i, 9)));
+        num2.erase(0, 1);
+    }
+    while (num2.length() >= 9) {
+        number.push_back(std::stoi(num2.substr(num2.length() - 9, 9)));
+        num2.erase(num2.length() - 9, 9);
+    }
+    if (num2.length() != 0)
+        number.push_back(std::stoi(num2));
 
-    } else
-        for (int i = 0; i < num2.length(); i += 9)
-            number.push_back(std::stoi(num2.substr(i, 9)));
+    std::reverse(number.begin(), number.end());
+}
 
+BigInt::BigInt(const BigInt &input_bi) {
+    number = input_bi.number;
+    sign = input_bi.sign;
+}
+
+//BigInt &BigInt::operator++() {
+
+//}
+
+
+
+
+void PRINT_BI(const BigInt &bi) {
+    bi.sign == '-' ? std::cout << bi.sign : std::cout << "";
+    std::cout << bi.number[0];
+    for (int i = 1; i < bi.number.size(); i++) {
+        printf("%09d", bi.number[i]);
+    }
 }
 
 
@@ -123,10 +149,9 @@ BigInt::BigInt(const std::string &num2) {
 //std::ostream& operator<<(std::ostream& o, const BigInt& i);
 int main() {
     try {
-        BigInt bi("1444446448941848941841991");
-        bi.sign == '-' ? std::cout << bi.sign : std::cout << "";
-        for (auto c: bi.number)
-            std::cout << c;
+        BigInt bi("0000000000112300000000");
+
+        PRINT_BI(bi);
     }
     catch (const std::invalid_argument &err) {
         std::cout << err.what();
