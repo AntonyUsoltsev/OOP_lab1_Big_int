@@ -29,7 +29,7 @@ public:
 //
 //    BigInt &operator++();
 //
-//    const BigInt operator++(int) const;
+//    const BigInt operator++(BigInt) const;
 //
 //    BigInt &operator--();
 //
@@ -41,6 +41,7 @@ public:
 //    BigInt &operator*=(const BigInt &);
 //
     BigInt &operator-=(const BigInt &);
+
 //
 //    BigInt &operator/=(const BigInt &);
 //
@@ -55,17 +56,22 @@ public:
     BigInt operator+() const;  // unary +
     BigInt &operator-();  // unary -
 //
-//    bool operator==(const BigInt &) const;
+    bool operator==(const BigInt &) const;
+
 //
-//    bool operator!=(const BigInt &) const;
+    bool operator!=(const BigInt &) const;
+
 //
-//    bool operator<(const BigInt &) const;
+    bool operator<(const BigInt &) const;
+
 //
-//    bool operator>(const BigInt &) const;
+    bool operator>(const BigInt &) const;
+
 //
-//    bool operator<=(const BigInt &) const;
+    bool operator<=(const BigInt &) const;
+
 //
-//    bool operator>=(const BigInt &) const;
+    bool operator>=(const BigInt &) const;
 //
 //    operator int() const;
 //
@@ -100,10 +106,10 @@ BigInt::BigInt(long inp_int) {
         inp_int = inp_int / syst;
     }
 
-    //std::reverse(number.begin(), number.end());
-
     while (number[0] == 0)
         number.erase(number.begin());
+    if (number[0] == 0)
+        sign = '+';
 }
 
 BigInt::BigInt(std::string inp_str) {
@@ -128,10 +134,10 @@ BigInt::BigInt(std::string inp_str) {
     if (inp_str.length() != 0)
         number.push_back(std::stoi(inp_str));
 
-    //std::reverse(number.begin(), number.end());
-//
     while (number[number.size() - 1] == 0 && number.size() > 1)
         number.erase(number.end() - 1);
+    if (number[0] == 0)
+        sign = '+';
 }
 
 BigInt::BigInt(const BigInt &inp_bi) {
@@ -147,7 +153,7 @@ BigInt &BigInt::operator=(const BigInt &inp_bi) {
 
 BigInt &BigInt::operator+=(const BigInt &inp_bi) {
     //if(sign!=inp_bi.sign)
-        //minus;
+    //minus;
 
     int carry = 0;
     int max_len = (int) std::max(number.size(), inp_bi.number.size());
@@ -166,8 +172,22 @@ BigInt &BigInt::operator+=(const BigInt &inp_bi) {
     return *this;
 }
 
-BigInt &BigInt::operator-=(const BigInt &) {
+BigInt &BigInt::operator-=(const BigInt &inp_bi) {
 
+    int carry = 0;
+    int max_len = (int) std::max(number.size(), inp_bi.number.size());
+    for (int i = 0; i < max_len || carry != 0; i++) {
+        if (i == number.size())
+            number.push_back(0);
+        if (i < inp_bi.number.size())
+            number[i] -= carry + inp_bi.number[i];
+        else
+            number[i] -= carry;
+        if (number[i] < 0)
+            carry = 1;
+        if (carry != 0 && number[i + 1])
+            number[i] += syst;
+    }
 
     return *this;
 }
@@ -184,7 +204,41 @@ BigInt BigInt::operator+() const {
     return *this;
 }
 
+bool BigInt::operator>(const BigInt &inp_bi) const {
+    if (this->sign != inp_bi.sign)
+        return (this->sign == '+');
+    else if (this->number.size() > inp_bi.number.size())
+        return (this->sign == '+');
+    for (int i = (int) this->number.size() - 1; i >= 0; i--)
+        if (this->number[i] != inp_bi.number[i])
+            return (this->number[i] > inp_bi.number[i] && this->sign == '+');
+    return false;
+}
 
+bool BigInt::operator==(const BigInt &inp_bi) const {
+    if (this->number.size() > inp_bi.number.size() || this->sign != inp_bi.sign)
+        return false;
+    for (int i = (int) this->number.size() - 1; i >= 0; i--)
+        if (this->number[i] != inp_bi.number[i])
+            return false;
+    return true;
+}
+
+bool BigInt::operator!=(const BigInt &inp_bi) const {
+    return !(*this == inp_bi);
+}
+
+bool BigInt::operator<=(const BigInt &inp_bi) const {
+    return !(*this > inp_bi);
+}
+
+bool BigInt::operator<(const BigInt &inp_bi) const {
+    return !(*this > inp_bi || *this == inp_bi);
+}
+
+bool BigInt::operator>=(const BigInt &inp_bi) const {
+    return !(*this < inp_bi);
+}
 
 
 void PRINT_BI(BigInt &inp_bi) {
@@ -192,16 +246,18 @@ void PRINT_BI(BigInt &inp_bi) {
     std::reverse(inp_bi.number.begin(), inp_bi.number.end());
     std::cout << inp_bi.number[0];
     for (int i = 1; i < inp_bi.number.size(); i++) {
-        printf(" %09d", inp_bi.number[i]);
+        printf("%09d", inp_bi.number[i]);
     }
 }
 
 
 int main() {
     try {
-        BigInt bi("-12345000000000000000000");
-        BigInt bi2("12345000000000000000000");
-        PRINT_BI(bi += bi2);
+        BigInt bi1("-15423");
+        BigInt bi2("1235");
+        //PRINT_BI(bi1 += bi2);
+        std::cout << (bi1 >= bi2);
+
     }
     catch (const std::invalid_argument &err) {
         std::cout << err.what();
