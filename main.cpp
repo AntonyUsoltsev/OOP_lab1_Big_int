@@ -22,25 +22,23 @@ public:
     ~BigInt();
 
     BigInt &operator=(const BigInt &);  //возможно присваивание самому себе!
-//
-//    BigInt operator~() const;
-//
-    //  BigInt &operator++();
-//
-//    const BigInt operator++(BigInt) const;
-//
-//    BigInt &operator--();
-//
-//    const BigInt operator--(int) const;
-//
+
+    BigInt operator~() const;
+
+    BigInt &operator++();
+
+    const BigInt operator++(int);
+
+    BigInt &operator--();
+
+    const BigInt operator--(int);
+
     BigInt &operator+=(const BigInt &);
 
-//
 //    BigInt &operator*=(const BigInt &);
-//
+
     BigInt &operator-=(const BigInt &);
 
-//
 //    BigInt &operator/=(const BigInt &);
 //
 //    BigInt &operator^=(const BigInt &);
@@ -191,12 +189,8 @@ BigInt &BigInt::operator-=(const BigInt &inp_bi) {
             if (copy_1.number[i] < 0) {
                 carry = 1;
                 copy_1.number[i] += syst;
-            }
-            else
+            } else
                 carry = 0;
-
-//            if (carry != 0)
-//                copy_1.number[i] += syst;
         }
         *this = copy_1;
     }
@@ -226,13 +220,11 @@ BigInt &BigInt::operator+=(const BigInt &inp_bi) {
             else
                 number[i] += carry;
 
-            if (number[i] > syst)
+            if (number[i] > syst) {
                 carry = 1;
-            else
-                carry = 0;
-
-            if (carry != 0)
                 number[i] / syst;
+            } else
+                carry = 0;
         }
         return *this;
     }
@@ -289,11 +281,35 @@ bool BigInt::operator>=(const BigInt &inp_bi) const {
 }
 
 
-//BigInt &BigInt::operator++() {
-//    if (this->sign == '+'){
-//        this->nu
-//    }
-//}
+BigInt &BigInt::operator++() {
+    BigInt tmp(1);
+    *this += tmp;
+    return *this;
+}
+
+const BigInt BigInt::operator++(int) {
+    BigInt tmp = *this;
+    ++*this;
+    return tmp;
+}
+
+BigInt &BigInt::operator--() {
+    BigInt tmp(1);
+    *this -= tmp;
+    return *this;
+}
+
+const BigInt BigInt::operator--(int) {
+    BigInt tmp = *this;
+    --*this;
+    return tmp;
+}
+
+BigInt BigInt::operator~() const{
+    BigInt tmp = *this;
+    ++tmp;
+    return -tmp;
+}
 
 
 void PRINT_BI(BigInt &inp_bi) {
@@ -308,10 +324,12 @@ void PRINT_BI(BigInt &inp_bi) {
 
 int main() {
     try {
-        BigInt bi1("123456789000000000000000000000000000");
-        BigInt bi2("144858944984898948");
-        PRINT_BI(bi1 -= bi2);
+        BigInt bi1("12345");
+        BigInt bi2("-12346");
+        //BigInt bi2 = ~bi1;
+        PRINT_BI(bi2);
         // std::cout << (bi1 >= bi2);
+        //std::cout<<~-385009090000945892;
     }
     catch (const std::invalid_argument &err) {
         std::cout << err.what();
