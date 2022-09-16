@@ -19,15 +19,13 @@ public:
 
     BigInt(const BigInt &);
 
+    ~BigInt();
 
-//
-//    ~BigInt();
-//
     BigInt &operator=(const BigInt &);  //возможно присваивание самому себе!
 //
 //    BigInt operator~() const;
 //
-//    BigInt &operator++();
+    //  BigInt &operator++();
 //
 //    const BigInt operator++(BigInt) const;
 //
@@ -54,23 +52,19 @@ public:
 //    BigInt &operator|=(const BigInt &);
 //
     BigInt operator+() const;  // unary +
+
     BigInt &operator-();  // unary -
-//
+
     bool operator==(const BigInt &) const;
 
-//
     bool operator!=(const BigInt &) const;
 
-//
     bool operator<(const BigInt &) const;
 
-//
     bool operator>(const BigInt &) const;
 
-//
     bool operator<=(const BigInt &) const;
 
-//
     bool operator>=(const BigInt &) const;
 //
 //    operator int() const;
@@ -145,52 +139,106 @@ BigInt::BigInt(const BigInt &inp_bi) {
     sign = inp_bi.sign;
 }
 
+BigInt::~BigInt() = default;
+
 BigInt &BigInt::operator=(const BigInt &inp_bi) {
+    if (this == &inp_bi) {
+        throw "self assigment";
+    }
     number = inp_bi.number;
     sign = inp_bi.sign;
     return *this;
 }
 
-BigInt &BigInt::operator+=(const BigInt &inp_bi) {
-    //if(sign!=inp_bi.sign)
-    //minus;
-
-    int carry = 0;
-    int max_len = (int) std::max(number.size(), inp_bi.number.size());
-    for (int i = 0; i < max_len || carry != 0; i++) {
-        if (i == number.size())
-            number.push_back(0);
-        if (i < inp_bi.number.size())
-            number[i] += carry + inp_bi.number[i];
-        else
-            number[i] += carry;
-        if (number[i] > syst)
-            carry = 1;
-        if (carry != 0)
-            number[i] / syst;
-    }
-    return *this;
-}
-
 BigInt &BigInt::operator-=(const BigInt &inp_bi) {
+    if (this->sign == '+' && inp_bi.sign == '-') {
+        BigInt copy = inp_bi;
+        *this += -(copy);
+        return *this;
+    } else if (this->sign == '-' && inp_bi.sign == '+') {
+        BigInt copy = -*this;
+        copy += inp_bi;
+        *this = -copy;
+        return *this;
+    } else if (this->sign == '-' && inp_bi.sign == '-') {
+        BigInt copy_1 = -*this;
+        BigInt copy_2 = inp_bi;
+        (-copy_2) -= copy_1;
+        *this = copy_2;
+        return *this;
+    } else {
+        BigInt copy_1;
+        BigInt copy_2;
+        if (*this > inp_bi) {
+            copy_1 = *this;
+            copy_2 = inp_bi;
+        } else if (*this < inp_bi) {
+            copy_1 = inp_bi;
+            copy_2 = *this;
+            copy_1.sign = '-';
+        }
+        int carry = 0;
+        int max_len = (int) std::max(copy_1.number.size(), copy_2.number.size());
+        for (int i = 0; i < max_len || carry != 0; i++) {
+            if (i == copy_1.number.size())
+                copy_1.number.push_back(0);
 
-    int carry = 0;
-    int max_len = (int) std::max(number.size(), inp_bi.number.size());
-    for (int i = 0; i < max_len || carry != 0; i++) {
-        if (i == number.size())
-            number.push_back(0);
-        if (i < inp_bi.number.size())
-            number[i] -= carry + inp_bi.number[i];
-        else
-            number[i] -= carry;
-        if (number[i] < 0)
-            carry = 1;
-        if (carry != 0 && number[i + 1])
-            number[i] += syst;
+            if (i < copy_2.number.size())
+                copy_1.number[i] -= carry + copy_2.number[i];
+            else
+                copy_1.number[i] -= carry;
+
+            if (copy_1.number[i] < 0) {
+                carry = 1;
+                copy_1.number[i] += syst;
+            }
+            else
+                carry = 0;
+
+//            if (carry != 0)
+//                copy_1.number[i] += syst;
+        }
+        *this = copy_1;
     }
-
     return *this;
 }
+
+BigInt &BigInt::operator+=(const BigInt &inp_bi) {
+    if (this->sign == '+' && inp_bi.sign == '-') {
+        BigInt copy = inp_bi;
+        *this -= -(copy);
+        return *this;
+    } else if (this->sign == '-' && inp_bi.sign == '+') {
+        BigInt copy_1 = -*this;
+        BigInt copy_2 = inp_bi;
+        copy_2 -= copy_1;
+        *this = copy_2;
+        return *this;
+    } else {
+        int carry = 0;
+        int max_len = (int) std::max(number.size(), inp_bi.number.size());
+        for (int i = 0; i < max_len || carry != 0; i++) {
+            if (i == number.size())
+                number.push_back(0);
+
+            if (i < inp_bi.number.size())
+                number[i] += carry + inp_bi.number[i];
+            else
+                number[i] += carry;
+
+            if (number[i] > syst)
+                carry = 1;
+            else
+                carry = 0;
+
+            if (carry != 0)
+                number[i] / syst;
+        }
+        return *this;
+    }
+    return *this;
+}
+
 
 BigInt &BigInt::operator-() {
     if (sign == '+')
@@ -241,6 +289,13 @@ bool BigInt::operator>=(const BigInt &inp_bi) const {
 }
 
 
+//BigInt &BigInt::operator++() {
+//    if (this->sign == '+'){
+//        this->nu
+//    }
+//}
+
+
 void PRINT_BI(BigInt &inp_bi) {
     inp_bi.sign == '-' ? std::cout << inp_bi.sign : std::cout << "";
     std::reverse(inp_bi.number.begin(), inp_bi.number.end());
@@ -253,11 +308,10 @@ void PRINT_BI(BigInt &inp_bi) {
 
 int main() {
     try {
-        BigInt bi1("-15423");
-        BigInt bi2("1235");
-        //PRINT_BI(bi1 += bi2);
-        std::cout << (bi1 >= bi2);
-
+        BigInt bi1("123456789000000000000000000000000000");
+        BigInt bi2("144858944984898948");
+        PRINT_BI(bi1 -= bi2);
+        // std::cout << (bi1 >= bi2);
     }
     catch (const std::invalid_argument &err) {
         std::cout << err.what();
