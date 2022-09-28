@@ -3,6 +3,7 @@
 #include <vector>
 #include <algorithm>
 #include <iomanip>
+#include <limits.h>
 //#include <windows.h>
 
 #define syst 1000000000
@@ -42,11 +43,10 @@ public:
 
     BigInt &operator/=(const BigInt &);
 
-//
-//    BigInt &operator^=(const BigInt &);
-//
-//    BigInt &operator%=(const BigInt &);
-//
+    BigInt &operator^=(const BigInt &);
+
+    BigInt &operator%=(const BigInt &);
+
 //    BigInt &operator&=(const BigInt &);
 //
 //    BigInt &operator|=(const BigInt &);
@@ -67,11 +67,11 @@ public:
 
     bool operator>=(const BigInt &) const;
 
-    //explicit operator int() const; //???????
+    explicit operator int() const; //???????
 
     explicit operator std::string() const;
 
-//    size_t size() const;  // size in bytes
+    size_t size() const;  // size in bytes
 };
 
 BigInt operator+(const BigInt &, const BigInt &);
@@ -80,13 +80,15 @@ BigInt operator-(const BigInt &, const BigInt &);
 
 BigInt operator*(const BigInt &, const BigInt &);
 
-//BigInt operator/(const BigInt&, const BigInt&);
-//BigInt operator^(const BigInt&, const BigInt&);
-//BigInt operator%(const BigInt&, const BigInt&);
+BigInt operator/(const BigInt &, const BigInt &);
+
+BigInt operator^(const BigInt &, const BigInt &);
+
+BigInt operator%(const BigInt &, const BigInt &);
+
 //BigInt operator&(const BigInt&, const BigInt&);
 //BigInt operator|(const BigInt&, const BigInt&);
-//
-//
+
 std::ostream &operator<<(std::ostream &o, const BigInt &i);
 
 BigInt::BigInt() {
@@ -138,7 +140,6 @@ BigInt::BigInt(std::string inp_str) {
         number.push_back(std::stoi(inp_str));
 
     while (number.back() == 0 && number.size() > 1)
-//        number.erase(number.end() - 1);
         number.pop_back();
     if (number[0] == 0 && number.size() == 1)
         sign = '+';
@@ -335,15 +336,6 @@ BigInt &BigInt::operator*=(const BigInt &inp_bi) {
         index++;
         cur = index;
     }
-    //   carry = 0;
-//    for (int i = 0;i<tmp.size();i++){
-//        tmp[i]+=carry;
-//        carry = 0;
-//        if (tmp[i]>=syst){
-//            carry = tmp[i]/syst;
-//            tmp[i] = tmp[i]%syst;
-//        }
-//    }
     while (res.back() == 0 && res.size() > 1)
         res.pop_back();
     this->number = res;
@@ -357,68 +349,73 @@ BigInt abs(BigInt &inp_bi) {
     return inp_bi;
 }
 
-BigInt bin_search(const BigInt& tmp, const BigInt& divider) {
+BigInt bin_search(const BigInt &tmp, const BigInt &divider) {
     if (divider > tmp) {
         BigInt zero_res(0);
         return zero_res;
     }
     int left = 1, right = syst - 1, mid = syst / 2;
     BigInt mid_bi((left + right) / 2);
-  //  BigInt koef(1);
     while (left <= right) {
-        if ((divider * mid_bi) <= tmp) {
+        if ((divider * mid_bi) <= tmp)
             left = mid + 1;
-            mid = (left + right) / 2;
-//            if (((mid_bi+koef)*divider - mid_bi*divider) <= divider){
-//                return mid_bi;
-//            }
-        } else  {
+        else
             right = mid - 1;
-            mid = (left + right) / 2;
-        }
+        mid = (left + right) / 2;
         mid_bi.number[0] = mid;
     }
     return mid_bi;
 }
-//std::string to_str(BigInt inp_bi){
-//    for (int i = inp_bi.number.size() - 1; i >= 0; i--)
-//}
 
 BigInt &BigInt::operator/=(const BigInt &inp_bi) {
-    BigInt divisible = *this, divider = inp_bi, quotient;
+    BigInt divisible = *this, divider = inp_bi;
     BigInt zero_res(0);
 
     if (inp_bi.number[0] == 0 && inp_bi.number.size() == 1)
         throw std::invalid_argument("Division by zero");
 
-    this->sign = (this->sign == inp_bi.sign) ? '+' : '-';
-
     if (abs(divisible) < abs(divider)) {
         *this = zero_res;
         return *this;
     }
-    //    BigInt tmp("0"), system(syst);
-
-    BigInt res,cur;
+    BigInt res, cur, quotient;
     res.number.resize(this->number.size());
 
     for (int i = this->number.size() - 1; i >= 0; i--) {
         cur.number.insert(cur.number.begin(), this->number[i]);
-//        tmp += cur;
         quotient = bin_search(cur, divider);
-//        tmp -= quotient * divider;
-//        tmp *= system;
         res.number[i] = quotient.number[0];
         cur -= (quotient * divider);
     }
-
     this->number = res.number;
-   // std::reverse(number.begin(), number.end());
+    if (this->sign != inp_bi.sign) {
+        this->sign = '-';
+        --*this;
+    } else
+        this->sign = '+';
+
     while (number.back() == 0 && number.size() > 1)
         number.pop_back();
     return *this;
 }
 
+
+BigInt &BigInt::operator^=(const BigInt &inp_bi) {
+    BigInt one(1);
+    BigInt cur = *this;
+    BigInt count = inp_bi;
+    while (count != one) {
+        *this *= cur;
+        --count;
+    }
+    return *this;
+}
+
+BigInt &BigInt::operator%=(const BigInt &inp_bi) {
+    BigInt div = *this / inp_bi;
+    *this -= div * inp_bi;
+    return *this;
+}
 
 BigInt::operator std::string() const {
     std::stringstream str;
@@ -426,38 +423,52 @@ BigInt::operator std::string() const {
     return str.str();
 }
 
-//BigInt::operator int() const {
-//    if (number.size()==1)
-//        return number[0];
-//    else
-//        throw std::invalid_argument("number is bigger than int");
-//}
+size_t BigInt::size() const {
+    return (this->number.size() + 1);
+}
 
-//12193263111033379041662094193112635269
-//121932632103337905662094193112635269
-//99999999999999999999999999999999999980000000000000000000000000000000000001
-//99999999999999999999999999999999999980000000000000000000000000000000000001
-//99999999999999999999999999999999999980000000000000000000000000000000000001
-
+BigInt::operator int() const {
+    unsigned long long res;
+    res = number.size() == 1 ? this->number[0] : (this->number[0] + this->number[1] * syst);
+    if (res <= INT_MAX)
+        return (this->sign == '+') ? (int) res : (int) (-1 * res);
+    else
+        throw std::invalid_argument("number is bigger than int");
+}
 
 BigInt operator+(const BigInt &inp_bi_1, const BigInt &inp_bi_2) {
-    BigInt res("0");
-    res += inp_bi_1;
+    BigInt res = inp_bi_1;
     res += inp_bi_2;
     return res;
 };
 
 BigInt operator-(const BigInt &inp_bi_1, const BigInt &inp_bi_2) {
-    BigInt res("0");
-    res += inp_bi_1;
+    BigInt res = inp_bi_1;
     res -= inp_bi_2;
     return res;
 };
 
 BigInt operator*(const BigInt &inp_bi_1, const BigInt &inp_bi_2) {
-    BigInt res("1");
-    res *= inp_bi_1;
+    BigInt res = inp_bi_1;
     res *= inp_bi_2;
+    return res;
+}
+
+BigInt operator/(const BigInt &inp_bi_1, const BigInt &inp_bi_2) {
+    BigInt res = inp_bi_1;
+    res /= inp_bi_2;
+    return res;
+}
+
+BigInt operator^(const BigInt &inp_bi_1, const BigInt &inp_bi_2) {
+    BigInt res = inp_bi_1;
+    res ^= inp_bi_2;
+    return res;
+}
+
+BigInt operator%(const BigInt &inp_bi_1, const BigInt &inp_bi_2) {
+    BigInt res = inp_bi_1;
+    res %= inp_bi_2;
     return res;
 }
 
@@ -500,34 +511,17 @@ int main() {
 //        PRINT_BI(++bi5);
 //        std :: cout << "\n-1 k vtoromu ";
 //        PRINT_BI(--bi6);
-        BigInt bi1("20000000002");
-        BigInt bi2("2");
-        //BigInt bi3 = bi1 * bi2;
-////        BigInt bi3 = bi1 - bi2;
-//        //PRINT_BI(bi1);
-////        for (int i = 1; i<=1; i++){
-////            bi1++;
-////            bi2*=bi1;
-////        }
+        BigInt bi1("-1222555222222222200");
+        BigInt bi2("555553958998");
+        std::cout << (bi1 + bi2) << " " << (bi1 - bi2) << " " << bi1 << " " << " ";
+        //std::cout << bi2.operator int();
+        std::cout << bi2.operator std::string();
+//        int a = 9, b = 14;
+//        std::cout << (a & b);
 
-        std::cout << (bi1 /= bi2);
-//        std::cout << bi1 << "\n";
-//        std::cout << bi1 << "\n";
-//        std::string();
-
-        //std::cout << "\n8481984952952";
-        // PRINT_BI(bi2);
-        //PRINT_BI(bi1+=bi2);
-        // std::cout << "\n";
-        //PRINT_BI(bi3);
-//        std::cout << "\n";
-//        PRINT_BI(bi2);
-//        std::cout << "\n";
-//        PRINT_BI(bi3);
     }
     catch (const std::invalid_argument &err) {
         std::cerr << err.what();
     }
-    //Sleep(60000);
     return 0;
 }
