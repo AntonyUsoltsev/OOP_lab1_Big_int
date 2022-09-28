@@ -1,5 +1,5 @@
 #include <iostream>
-#include <string>
+//#include <string>
 #include <vector>
 #include <algorithm>
 #include <iomanip>
@@ -236,7 +236,6 @@ BigInt &BigInt::operator+=(const BigInt &inp_bi) {
         }
         return *this;
     }
-    return *this;
 }
 
 BigInt &BigInt::operator-() {
@@ -319,19 +318,19 @@ BigInt BigInt::operator~() const {
 
 BigInt &BigInt::operator*=(const BigInt &inp_bi) {
     this->sign = (this->sign == inp_bi.sign) ? '+' : '-';
-    std::vector<int> tmp;
-    tmp.resize(this->number.size() + inp_bi.number.size());
-    long long res, carry = 0;
+    std::vector<int> res;
+    res.resize(this->number.size() + inp_bi.number.size());
+    long long tmp, carry = 0;
     int cur = 0, index = 0;
     for (auto i: number) {
         for (auto j: inp_bi.number) {
-            res = (long long) i * (long long) j + carry + (long long) tmp[cur];
-            tmp[cur] = (int) (res % syst);
+            tmp = (long long) i * (long long) j + carry + (long long) res[cur];
+            res[cur] = (int) (tmp % syst);
             cur++;
-            carry = res / syst;
+            carry = tmp / syst;
         }
         if (carry != 0)
-            tmp[cur] = (int) carry;
+            res[cur] = (int) carry;
         carry = 0;
         index++;
         cur = index;
@@ -345,22 +344,93 @@ BigInt &BigInt::operator*=(const BigInt &inp_bi) {
 //            tmp[i] = tmp[i]%syst;
 //        }
 //    }
-    while (tmp.back() == 0 && tmp.size() > 1)
-        number.pop_back();
-    this->number = tmp;
+    while (res.back() == 0 && res.size() > 1)
+        res.pop_back();
+    this->number = res;
     if (number[0] == 0 && number.size() == 1)
         sign = '+';
     return *this;
 }
 
-BigInt ::operator std::string() const {
+BigInt abs(BigInt &inp_bi) {
+    inp_bi.sign = '+';
+    return inp_bi;
+}
+
+BigInt bin_search(const BigInt& tmp, const BigInt& divider) {
+    if (divider > tmp) {
+        BigInt zero_res(0);
+        return zero_res;
+    }
+    int left = 1, right = syst - 1, mid = syst / 2;
+    BigInt mid_bi((left + right) / 2);
+  //  BigInt koef(1);
+    while (left <= right) {
+        if ((divider * mid_bi) <= tmp) {
+            left = mid + 1;
+            mid = (left + right) / 2;
+//            if (((mid_bi+koef)*divider - mid_bi*divider) <= divider){
+//                return mid_bi;
+//            }
+        } else  {
+            right = mid - 1;
+            mid = (left + right) / 2;
+        }
+        mid_bi.number[0] = mid;
+    }
+    return mid_bi;
+}
+//std::string to_str(BigInt inp_bi){
+//    for (int i = inp_bi.number.size() - 1; i >= 0; i--)
+//}
+
+BigInt &BigInt::operator/=(const BigInt &inp_bi) {
+    BigInt divisible = *this, divider = inp_bi, quotient;
+    BigInt zero_res(0);
+
+    if (inp_bi.number[0] == 0 && inp_bi.number.size() == 1)
+        throw std::invalid_argument("Division by zero");
+
+    this->sign = (this->sign == inp_bi.sign) ? '+' : '-';
+
+    if (abs(divisible) < abs(divider)) {
+        *this = zero_res;
+        return *this;
+    }
+    //    BigInt tmp("0"), system(syst);
+
+    BigInt res,cur;
+    res.number.resize(this->number.size());
+
+    for (int i = this->number.size() - 1; i >= 0; i--) {
+        cur.number.insert(cur.number.begin(), this->number[i]);
+//        tmp += cur;
+        quotient = bin_search(cur, divider);
+//        tmp -= quotient * divider;
+//        tmp *= system;
+        res.number[i] = quotient.number[0];
+        cur -= (quotient * divider);
+    }
+
+    this->number = res.number;
+   // std::reverse(number.begin(), number.end());
+    while (number.back() == 0 && number.size() > 1)
+        number.pop_back();
+    return *this;
+}
+
+
+BigInt::operator std::string() const {
     std::stringstream str;
     str << *this;
     return str.str();
 }
 
-//BigInt &BigInt::operator/=(const BigInt &) {
-//
+//BigInt::operator int() const {
+//    if (number.size()==1)
+//        return number[0];
+//    else
+//        throw std::invalid_argument("number is bigger than int");
 //}
 
 //12193263111033379041662094193112635269
@@ -369,12 +439,6 @@ BigInt ::operator std::string() const {
 //99999999999999999999999999999999999980000000000000000000000000000000000001
 //99999999999999999999999999999999999980000000000000000000000000000000000001
 
-//BigInt::operator int() const {
-//    if (number.size()==1)
-//        return number[0];
-//    else
-//        throw std::invalid_argument("number is bigger than int");
-//}
 
 BigInt operator+(const BigInt &inp_bi_1, const BigInt &inp_bi_2) {
     BigInt res("0");
@@ -395,7 +459,7 @@ BigInt operator*(const BigInt &inp_bi_1, const BigInt &inp_bi_2) {
     res *= inp_bi_1;
     res *= inp_bi_2;
     return res;
-};
+}
 
 std::ostream &operator<<(std::ostream &o, const BigInt &inp_bi) {
     BigInt copy = inp_bi;
@@ -408,6 +472,7 @@ std::ostream &operator<<(std::ostream &o, const BigInt &inp_bi) {
         o << std::setw(9) << copy.number[i];
     return o;
 };
+
 //void PRINT_BI(BigInt &inp_bi) {
 //    inp_bi.sign == '-' ? std::cout << inp_bi.sign : std::cout << "";
 //    std::reverse(inp_bi.number.begin(), inp_bi.number.end());
@@ -415,7 +480,6 @@ std::ostream &operator<<(std::ostream &o, const BigInt &inp_bi) {
 //    for (int i = 1; i < inp_bi.number.size(); i++)
 //        printf("%09d", inp_bi.number[i]);
 //}
-
 
 int main() {
     try {
@@ -436,8 +500,8 @@ int main() {
 //        PRINT_BI(++bi5);
 //        std :: cout << "\n-1 k vtoromu ";
 //        PRINT_BI(--bi6);
-        BigInt bi1("11111111111122222222222333333333333344444444444");
-        BigInt bi2("1448");
+        BigInt bi1("20000000002");
+        BigInt bi2("2");
         //BigInt bi3 = bi1 * bi2;
 ////        BigInt bi3 = bi1 - bi2;
 //        //PRINT_BI(bi1);
@@ -446,10 +510,10 @@ int main() {
 ////            bi2*=bi1;
 ////        }
 
-        std::cout << bi1 << "\n";
-        std::cout << bi1 << "\n";
-        std::cout << bi1 << "\n";
-        std::string() ;
+        std::cout << (bi1 /= bi2);
+//        std::cout << bi1 << "\n";
+//        std::cout << bi1 << "\n";
+//        std::string();
 
         //std::cout << "\n8481984952952";
         // PRINT_BI(bi2);
