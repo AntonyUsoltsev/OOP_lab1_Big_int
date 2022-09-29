@@ -91,6 +91,10 @@ BigInt operator%(const BigInt &, const BigInt &);
 
 std::ostream &operator<<(std::ostream &o, const BigInt &i);
 
+void del_lead_zeros(BigInt &);
+
+
+
 BigInt::BigInt() = default;
 
 BigInt::BigInt(long inp_int) {
@@ -107,9 +111,7 @@ BigInt::BigInt(long inp_int) {
             inp_int = inp_int / syst;
         }
 
-        while (number[0] == 0)
-            number.erase(number.begin());
-
+        del_lead_zeros(*this);
         if (number[0] == 0)
             sign = '+';
     }
@@ -136,9 +138,7 @@ BigInt::BigInt(std::string inp_str) {
     }
     if (inp_str.length() != 0)
         number.push_back(std::stoi(inp_str));
-
-    while (number.back() == 0 && number.size() > 1)
-        number.pop_back();
+    del_lead_zeros(*this);
     if (number[0] == 0 && number.size() == 1)
         sign = '+';
 }
@@ -310,9 +310,8 @@ BigInt &BigInt::operator*=(const BigInt &inp_bi) {
         index++;
         cur = index;
     }
-    while (res.back() == 0 && res.size() > 1)
-        res.pop_back();
     this->number = res;
+    del_lead_zeros(*this);
     if (number[0] == 0 && number.size() == 1)
         sign = '+';
     return *this;
@@ -357,14 +356,16 @@ BigInt &BigInt::operator/=(const BigInt &inp_bi) {
 
     for (int i = this->number.size() - 1; i >= 0; i--) {
         cur.number.insert(cur.number.begin(), this->number[i]);
+        del_lead_zeros(cur);
         quotient = bin_search(cur, divider);
         res.number[i] = quotient.number[0];
         cur -= (quotient * divider);
+//        if (cur == zero_res)
+//            cur.number.erase(cur.number.begin());
     }
     this->number = res.number;
     this->sign = (this->sign == inp_bi.sign) ? '+' : '-';
-    while (number.back() == 0 && number.size() > 1)
-        number.pop_back();
+    del_lead_zeros(*this);
     return *this;
 }
 
@@ -439,6 +440,11 @@ BigInt operator%(const BigInt &inp_bi_1, const BigInt &inp_bi_2) {
     res %= inp_bi_2;
     return res;
 }
+void del_lead_zeros(BigInt &inp_bi){
+    while ( inp_bi.number.size() > 1 && inp_bi.number.back() == 0 )
+        inp_bi.number.pop_back();
+
+};
 
 std::ostream &operator<<(std::ostream &o, const BigInt &inp_bi) {
     BigInt copy = inp_bi;
@@ -454,10 +460,10 @@ std::ostream &operator<<(std::ostream &o, const BigInt &inp_bi) {
 
 int main() {
     try {
-        BigInt bi1("100");
-        BigInt bi2("-33");
-        std::cout << (bi1 /= bi2) << '\n';
-        std::cout << (100 / -33) << '\n';
+//        BigInt bi1("-578962589632589624589625625865895487420258963200000000000000000000000000000000000000000000000002115215521452145852145541");
+//        BigInt bi2("458547852852896548652145562145852458524585245524");
+//        std::cout << (bi1/=bi2) << '\n';
+        std::cout << (-7 % -3 ) << '\n';
 //        std::cout << (bi1 += bi2) << '\n';
 //        std::cout << bi2.operator int();
 //        std::cout << (bi1<bi2) <<'\n'<<(bi1>bi2) <<'\n'<<(bi1==bi2) ;
