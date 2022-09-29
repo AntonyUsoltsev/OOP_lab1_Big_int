@@ -3,7 +3,7 @@
 #include <vector>
 #include <algorithm>
 #include <iomanip>
-#include <limits.h>
+#include <climits>
 //#include <windows.h>
 
 #define syst 1000000000
@@ -53,7 +53,7 @@ public:
 //
     BigInt operator+() const;  // unary +
 
-    BigInt &operator-();  // unary -
+    BigInt operator-() const;  // unary -
 
     bool operator==(const BigInt &) const;
 
@@ -67,7 +67,7 @@ public:
 
     bool operator>=(const BigInt &) const;
 
-    explicit operator int() const; //???????
+    explicit operator int() const;
 
     explicit operator std::string() const;
 
@@ -91,9 +91,7 @@ BigInt operator%(const BigInt &, const BigInt &);
 
 std::ostream &operator<<(std::ostream &o, const BigInt &i);
 
-BigInt::BigInt() {
-    number.push_back(0);
-}
+BigInt::BigInt() = default;
 
 BigInt::BigInt(long inp_int) {
     if (inp_int == 0)
@@ -161,62 +159,38 @@ BigInt &BigInt::operator=(const BigInt &inp_bi) {
 }
 
 BigInt &BigInt::operator-=(const BigInt &inp_bi) {
-    if (this->sign == '+' && inp_bi.sign == '-') {
+    if (inp_bi.sign == '-')
+        *this += (-inp_bi);
+    else if (this->sign == '-')
+        *this = (-((-*this) += inp_bi));
+    else if (*this < inp_bi) {
         BigInt copy = inp_bi;
-        *this += -(copy);
-        return *this;
-    } else if (this->sign == '-' && inp_bi.sign == '+') {
-        BigInt copy = -*this;
-        copy += inp_bi;
-        *this = -copy;
-        return *this;
-    } else if (this->sign == '-' && inp_bi.sign == '-') {
-        BigInt copy_1 = -*this;
-        BigInt copy_2 = inp_bi;
-        (-copy_2) -= copy_1;
-        *this = copy_2;
-        return *this;
+        *this = -(copy -= *this);
     } else {
-        BigInt copy_1;
-        BigInt copy_2;
-        if (*this > inp_bi) {
-            copy_1 = *this;
-            copy_2 = inp_bi;
-        } else if (*this < inp_bi) {
-            copy_1 = inp_bi;
-            copy_2 = *this;
-            copy_1.sign = '-';
-        }
         int carry = 0;
-        int max_len = (int) copy_1.number.size();
-        for (int i = 0; i < max_len || carry != 0; i++) {
-            if (i < copy_2.number.size())
-                copy_1.number[i] -= carry + copy_2.number[i];
+        int max_len = (int) this->number.size();
+        for (int i = 0; (i < max_len || carry != 0); i++) {
+            if (i < inp_bi.number.size())
+                this->number[i] -= carry + inp_bi.number[i];
             else
-                copy_1.number[i] -= carry;
+                this->number[i] -= carry;
 
-            if (copy_1.number[i] < 0) {
+            if (this->number[i] < 0) {
                 carry = 1;
-                copy_1.number[i] += syst;
+                this->number[i] += syst;
             } else
                 carry = 0;
         }
-        *this = copy_1;
     }
     return *this;
 }
 
 BigInt &BigInt::operator+=(const BigInt &inp_bi) {
-    if (this->sign == '+' && inp_bi.sign == '-') {
+    if (this->sign == '+' && inp_bi.sign == '-')
+        *this -= -inp_bi;
+    else if (this->sign == '-' && inp_bi.sign == '+') {
         BigInt copy = inp_bi;
-        *this -= -(copy);
-        return *this;
-    } else if (this->sign == '-' && inp_bi.sign == '+') {
-        BigInt copy_1 = -*this;
-        BigInt copy_2 = inp_bi;
-        copy_2 -= copy_1;
-        *this = copy_2;
-        return *this;
+        *this = (copy -= -(*this));
     } else {
         int carry = 0;
         int max_len = (int) std::max(number.size(), inp_bi.number.size());
@@ -229,22 +203,20 @@ BigInt &BigInt::operator+=(const BigInt &inp_bi) {
             else
                 number[i] += carry;
 
-            if (number[i] > syst) {
+            if (number[i] >= syst) {
                 carry = 1;
                 number[i] -= syst;
             } else
                 carry = 0;
         }
-        return *this;
     }
+    return *this;
 }
 
-BigInt &BigInt::operator-() {
-    if (sign == '+')
-        sign = '-';
-    else
-        sign = '+';
-    return *this;
+BigInt BigInt::operator-() const {
+    BigInt copy = *this;
+    copy.sign = (copy.sign == '+') ? '-' : '+';
+    return copy;
 }
 
 BigInt BigInt::operator+() const {
@@ -256,6 +228,8 @@ bool BigInt::operator>(const BigInt &inp_bi) const {
         return (this->sign == '+');
     else if (this->number.size() > inp_bi.number.size())
         return (this->sign == '+');
+    else if (this->number.size() < inp_bi.number.size())
+        return (this->sign == '-');
     for (int i = (int) this->number.size() - 1; i >= 0; i--)
         if (this->number[i] != inp_bi.number[i])
             return (this->number[i] > inp_bi.number[i] && this->sign == '+');
@@ -263,7 +237,7 @@ bool BigInt::operator>(const BigInt &inp_bi) const {
 }
 
 bool BigInt::operator==(const BigInt &inp_bi) const {
-    if (this->number.size() > inp_bi.number.size() || this->sign != inp_bi.sign)
+    if (this->number.size() != inp_bi.number.size() || this->sign != inp_bi.sign)
         return false;
     for (int i = (int) this->number.size() - 1; i >= 0; i--)
         if (this->number[i] != inp_bi.number[i])
@@ -280,7 +254,7 @@ bool BigInt::operator<=(const BigInt &inp_bi) const {
 }
 
 bool BigInt::operator<(const BigInt &inp_bi) const {
-    return !(*this > inp_bi || *this == inp_bi);
+    return !((*this > inp_bi) || (*this == inp_bi));
 }
 
 bool BigInt::operator>=(const BigInt &inp_bi) const {
@@ -388,17 +362,11 @@ BigInt &BigInt::operator/=(const BigInt &inp_bi) {
         cur -= (quotient * divider);
     }
     this->number = res.number;
-    if (this->sign != inp_bi.sign) {
-        this->sign = '-';
-        --*this;
-    } else
-        this->sign = '+';
-
+    this->sign = (this->sign == inp_bi.sign) ? '+' : '-';
     while (number.back() == 0 && number.size() > 1)
         number.pop_back();
     return *this;
 }
-
 
 BigInt &BigInt::operator^=(const BigInt &inp_bi) {
     BigInt one(1);
@@ -429,11 +397,11 @@ size_t BigInt::size() const {
 
 BigInt::operator int() const {
     unsigned long long res;
-    res = number.size() == 1 ? this->number[0] : (this->number[0] + this->number[1] * syst);
+    res = (this->number.size() == 1) ? number[0] : ((long long) number[1] * syst + (long long) number[0]);
     if (res <= INT_MAX)
         return (this->sign == '+') ? (int) res : (int) (-1 * res);
     else
-        throw std::invalid_argument("number is bigger than int");
+        throw std::invalid_argument("Number is bigger than int");
 }
 
 BigInt operator+(const BigInt &inp_bi_1, const BigInt &inp_bi_2) {
@@ -478,47 +446,24 @@ std::ostream &operator<<(std::ostream &o, const BigInt &inp_bi) {
         o << copy.sign;
     std::reverse(copy.number.begin(), copy.number.end());
     o << copy.number[0];
-    o.fill('0');   // should I return old char ?
+    o.fill('0');               // should I return old char ?
     for (int i = 1; i < copy.number.size(); i++)
         o << std::setw(9) << copy.number[i];
     return o;
-};
-
-//void PRINT_BI(BigInt &inp_bi) {
-//    inp_bi.sign == '-' ? std::cout << inp_bi.sign : std::cout << "";
-//    std::reverse(inp_bi.number.begin(), inp_bi.number.end());
-//    std::cout << inp_bi.number[0];
-//    for (int i = 1; i < inp_bi.number.size(); i++)
-//        printf("%09d", inp_bi.number[i]);
-//}
+}
 
 int main() {
     try {
-//        std::string a,b;
-//        std :: cout << "Vvedite dva chisla cherez probel, zatem enter\n";
-//        std::cin >> a >> b;
-//        BigInt bi1(a);
-//        BigInt bi2(b);
-//        std :: cout << "Summa ";
-//        PRINT_BI(bi1+=bi2);
-//        BigInt bi3(a);
-//        BigInt bi4(b);
-//        std :: cout << "\nRaznost' ";
-//        PRINT_BI(bi3-=bi4);
-//        BigInt bi5(a);
-//        BigInt bi6(b);
-//        std :: cout << "\n+1 k pervomu ";
-//        PRINT_BI(++bi5);
-//        std :: cout << "\n-1 k vtoromu ";
-//        PRINT_BI(--bi6);
-        BigInt bi1("-1222555222222222200");
-        BigInt bi2("555553958998");
-        std::cout << (bi1 + bi2) << " " << (bi1 - bi2) << " " << bi1 << " " << " ";
-        //std::cout << bi2.operator int();
-        std::cout << bi2.operator std::string();
+        BigInt bi1("100");
+        BigInt bi2("-33");
+        std::cout << (bi1 /= bi2) << '\n';
+        std::cout << (100 / -33) << '\n';
+//        std::cout << (bi1 += bi2) << '\n';
+//        std::cout << bi2.operator int();
+//        std::cout << (bi1<bi2) <<'\n'<<(bi1>bi2) <<'\n'<<(bi1==bi2) ;
+//        std::cout << bi2.operator std::string();
 //        int a = 9, b = 14;
 //        std::cout << (a & b);
-
     }
     catch (const std::invalid_argument &err) {
         std::cerr << err.what();
