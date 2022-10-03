@@ -6,7 +6,9 @@
 #include <algorithm>
 #include <iomanip>
 #include <climits>
+#include <cmath>
 
+#define syst 1000000000
 class BigInt {
 public:
     char sign = '+';
@@ -17,6 +19,7 @@ public:
     explicit BigInt(std::string); // бросать исключение std::invalid_argument при ошибке
     BigInt(const BigInt &);
     ~BigInt();
+
     BigInt &operator=(const BigInt &);  //возможно присваивание самому себе!
     BigInt operator~() const;
     BigInt &operator++();
@@ -30,8 +33,8 @@ public:
     BigInt &operator/=(const BigInt &);
     BigInt &operator^=(const BigInt &);
     BigInt &operator%=(const BigInt &);
-//    BigInt &operator&=(const BigInt &);
-//    BigInt &operator|=(const BigInt &);
+    BigInt &operator&=(const BigInt &);
+    BigInt &operator|=(const BigInt &);
 
     BigInt operator+() const;  // unary +
     BigInt operator-() const;  // unary -
@@ -54,9 +57,12 @@ BigInt operator*(const BigInt &, const BigInt &);
 BigInt operator/(const BigInt &, const BigInt &);
 BigInt operator^(const BigInt &, const BigInt &);
 BigInt operator%(const BigInt &, const BigInt &);
-//BigInt operator&(const BigInt&, const BigInt&);
-//BigInt operator|(const BigInt&, const BigInt&);
+BigInt operator&(const BigInt&, const BigInt&);
+BigInt operator|(const BigInt&, const BigInt&);
 
 std::ostream &operator<<(std::ostream &o, const BigInt &i);
 void del_lead_zeros(BigInt &);
+BigInt abs(const BigInt&);
+
+
 #endif //BIG_INT_BIGINT_H

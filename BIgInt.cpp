@@ -222,9 +222,10 @@ BigInt &BigInt::operator*=(const BigInt &inp_bi) {
     return *this;
 }
 
-BigInt abs(BigInt &inp_bi) {
-    inp_bi.sign = '+';
-    return inp_bi;
+BigInt abs(const BigInt &inp_bi) {
+    BigInt copy = inp_bi;
+    copy.sign = '+';
+    return copy;
 }
 
 BigInt bin_search(const BigInt &tmp, const BigInt &divider) {
@@ -239,6 +240,7 @@ BigInt bin_search(const BigInt &tmp, const BigInt &divider) {
             left = mid + 1;
         else
             right = mid - 1;
+
         mid = (left + right) / 2;
         mid_bi.number[0] = mid;
     }
@@ -286,6 +288,81 @@ BigInt &BigInt::operator^=(const BigInt &inp_bi) {
 BigInt &BigInt::operator%=(const BigInt &inp_bi) {
     BigInt div = *this / inp_bi;
     *this -= div * inp_bi;
+    return *this;
+}
+
+std::string dec_to_bin(BigInt dec_num, char sign) { //return reversed bin notation
+    if (sign == '-')
+        dec_num--;
+    BigInt zero(0), bin(2);
+    std::string result;
+    if (dec_num == zero) {
+        result.push_back('0');
+        return result;
+    }
+    while (dec_num > zero) {
+        result.push_back(char((dec_num % bin).operator int() + '0'));
+        dec_num /= bin;
+    }
+    return result;
+}
+
+std::string completion(std::string dec_num, char sign, int max_len) {
+    for (int i = 0; i < max_len; i++)
+        if (dec_num.size() == i)
+            dec_num.push_back(sign == '+' ? '0' : '1');
+        else if (sign == '-')
+            dec_num[i] = ((dec_num[i] == '1') ? '0' : '1');   //inverse bits
+    return dec_num;
+}
+
+BigInt bin_to_dec(const std::string &bin_num, char sign) {
+    BigInt result(0), one(1), bin(2);
+    if (sign == '+')
+        for (char c: bin_num) {
+            if (c == '1')
+                result += one;
+            one *= bin;
+        }
+    else {
+        for (char c : bin_num) {
+            if (c == '0')
+                result += one;
+            one *= bin;
+        }
+        result++;
+    }
+    result.sign = sign;
+    return result;
+}
+
+BigInt &BigInt::operator&=(const BigInt &inp_bi) {
+    std::string bin_num_1 = dec_to_bin(abs(*this), this->sign);
+    std::string bin_num_2 = dec_to_bin(abs(inp_bi), inp_bi.sign);
+    int max_len = (int) std::max(bin_num_1.length(), bin_num_2.length());
+    bin_num_1 = completion(bin_num_1, this->sign, max_len);
+    bin_num_2 = completion(bin_num_2, inp_bi.sign, max_len);
+    std::string result;
+    for (int i = 0; i < max_len; i++)
+        result.push_back(((bin_num_1[i] == '1') && (bin_num_2[i] == '1')) ? '1' : '0');
+    this->sign = (this->sign == '-' && inp_bi.sign == '-') ? '-' : '+';
+    *this = bin_to_dec(result, this->sign);
+    del_lead_zeros(*this);
+    return *this;
+}
+
+BigInt &BigInt::operator|=(const BigInt &inp_bi) {
+    std::string bin_num_1 = dec_to_bin(abs(*this), this->sign);
+    std::string bin_num_2 = dec_to_bin(abs(inp_bi), inp_bi.sign);
+    int max_len = (int) std::max(bin_num_1.length(), bin_num_2.length());
+    bin_num_1 = completion(bin_num_1, this->sign, max_len);
+    bin_num_2 = completion(bin_num_2, inp_bi.sign, max_len);
+    std::string result;
+    for (int i = 0; i < max_len; i++)
+        result.push_back(((bin_num_1[i] == '1') || (bin_num_2[i] == '1')) ? '1' : '0');
+    this->sign = (this->sign == '-' || inp_bi.sign == '-') ? '-' : '+';
+    *this = bin_to_dec(result, this->sign);
+    del_lead_zeros(*this);
     return *this;
 }
 
@@ -341,6 +418,18 @@ BigInt operator^(const BigInt &inp_bi_1, const BigInt &inp_bi_2) {
 BigInt operator%(const BigInt &inp_bi_1, const BigInt &inp_bi_2) {
     BigInt res = inp_bi_1;
     res %= inp_bi_2;
+    return res;
+}
+
+BigInt operator&(const BigInt&inp_bi_1, const BigInt&inp_bi_2){
+    BigInt res = inp_bi_1;
+    res &= inp_bi_2;
+    return res;
+}
+
+BigInt operator|(const BigInt&inp_bi_1, const BigInt&inp_bi_2){
+    BigInt res = inp_bi_1;
+    res |= inp_bi_2;
     return res;
 }
 

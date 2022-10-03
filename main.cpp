@@ -2,11 +2,12 @@
 
 int main() {
     try {
-        BigInt bi1("-10092982828919810000");
-        BigInt bi2("20");
-        std::cout << (bi1-bi2) << '\n';
+        BigInt bi1("14849498498");
+        BigInt bi2("-58898498498489");
+        std::cout << (bi1&bi2) << '\n' << (bi1|bi2);
+//        std::cout << (bi1-bi2) << '\n';
         //std::cout << (-7 % -3 ) << '\n';
-        std::cout << (bi1 + bi2) << '\n';
+//        std::cout << (bi1 + bi2) << '\n';
 //        std::cout << bi2.operator int();
 //        std::cout << (bi1<bi2) <<'\n'<<(bi1>bi2) <<'\n'<<(bi1==bi2) ;
 //        std::cout << bi2.operator std::string();
