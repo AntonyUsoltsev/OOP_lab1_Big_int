@@ -7,15 +7,23 @@
 #include <iomanip>
 #include <climits>
 #include <cmath>
+#include "gtest/gtest.h"
 
 #define syst 1000000000
 class BigInt {
-public:
+private:
     char sign = '+';
     std::vector<int> number;
+
+    static void del_lead_zeros(BigInt &);
+    static BigInt abs(const BigInt&);
+    static BigInt bin_to_dec(const std::string&, char);
+    static BigInt bin_search(const BigInt&, const BigInt&);
+    friend std::ostream &operator<<(std::ostream &, const BigInt &);
+
 public:
     BigInt();
-    explicit BigInt(long);
+    explicit BigInt(int);
     explicit BigInt(std::string); // бросать исключение std::invalid_argument при ошибке
     BigInt(const BigInt &);
     ~BigInt();
@@ -59,10 +67,7 @@ BigInt operator^(const BigInt &, const BigInt &);
 BigInt operator%(const BigInt &, const BigInt &);
 BigInt operator&(const BigInt&, const BigInt&);
 BigInt operator|(const BigInt&, const BigInt&);
-
-std::ostream &operator<<(std::ostream &o, const BigInt &i);
-void del_lead_zeros(BigInt &);
-BigInt abs(const BigInt&);
+std::ostream &operator<<(std::ostream &, const BigInt &);
 
 
 #endif //BIG_INT_BIGINT_H
