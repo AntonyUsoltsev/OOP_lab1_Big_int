@@ -3,8 +3,10 @@ project(big_int)
 
 set(CMAKE_CXX_STANDARD 14)
 
-add_executable(big_int main.cpp BIgInt.cpp BIgInt.h gtest.cpp)
+add_executable(big_int main.cpp BigInt.cpp BigInt.h gtest.cpp)
 
+#find_package(GTest)
+#target_link_libraries(big_int {GTEST_LIBRARY})
 include(FetchContent)
 FetchContent_Declare(
         googletest
