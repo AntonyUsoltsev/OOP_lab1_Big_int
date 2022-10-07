@@ -285,6 +285,7 @@ TEST(bigint_test_operator, operators) {
     EXPECT_EQ("805585120", (std::string) (BigInt("1919841516") & BigInt("3484040841696")));
     EXPECT_EQ("3485155098092", (std::string) (BigInt("1919841516") | BigInt("3484040841696")));
 }
+
 GTEST_API_ int main(int argc, char **argv) {
     testing::InitGoogleTest(&argc, argv);
     return RUN_ALL_TESTS();

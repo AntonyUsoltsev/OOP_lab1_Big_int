@@ -58,7 +58,7 @@ public:
 
     explicit operator int() const;          // From BigInt to int.
     explicit operator std::string() const;  // From BigInt to string.
-    size_t size() const;                    // Size in bytes: size of number (in bytes) + 1 byte - size of sign.
+    size_t size() const;                    // Size in bytes: size of number (in bytes) + 1 byte(size of sign).
 };
 
 BigInt operator+(const BigInt &, const BigInt &);

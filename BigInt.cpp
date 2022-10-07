@@ -3,6 +3,8 @@
 void BigInt::del_lead_zeros(BigInt &inp_bi) {
     while (inp_bi.number.size() > 1 && inp_bi.number.back() == 0)
         inp_bi.number.pop_back();
+    if (inp_bi.number[0] == 0 && inp_bi.number.size() == 1)
+        inp_bi.sign = '+';
 }
 
 BigInt::BigInt() = default;
@@ -18,12 +20,10 @@ BigInt::BigInt(int inp_int) {
         }
 
         while (num > 0) {
-            number.push_back((int)(num % syst));
+            number.push_back((int) (num % syst));
             num /= syst;
         }
         del_lead_zeros(*this);
-        if (number[0] == 0)
-            sign = '+';
     }
 }
 
@@ -49,8 +49,6 @@ BigInt::BigInt(std::string inp_str) {
     if (inp_str.length() != 0)
         number.push_back(std::stoi(inp_str));
     del_lead_zeros(*this);
-    if (number[0] == 0 && number.size() == 1)
-        sign = '+';
 }
 
 BigInt::BigInt(const BigInt &inp_bi) {
@@ -69,8 +67,8 @@ BigInt BigInt::operator~() const {
 }
 
 BigInt &BigInt::operator++() {
-    BigInt tmp(1);
-    *this += tmp;
+    BigInt one(1);
+    *this += one;
     return *this;
 }
 
@@ -81,8 +79,8 @@ const BigInt BigInt::operator++(int) {
 }
 
 BigInt &BigInt::operator--() {
-    BigInt tmp(1);
-    *this -= tmp;
+    BigInt one(1);
+    *this -= one;
     return *this;
 }
 
@@ -169,8 +167,6 @@ BigInt &BigInt::operator*=(const BigInt &inp_bi) {
     }
     this->number = res;
     del_lead_zeros(*this);
-    if (number[0] == 0 && number.size() == 1)
-        sign = '+';
     return *this;
 }
 
@@ -445,9 +441,9 @@ std::ostream &operator<<(std::ostream &o, const BigInt &inp_bi) {
     if (copy.sign == '-')
         o << copy.sign;
     //std::reverse(copy.number.begin(), copy.number.end());
-    o << copy.number[copy.number.size()-1];
+    o << copy.number[copy.number.size() - 1];
     //o.fill('0');               // should I return old char ?
-    for (int i = (int)copy.number.size()-2; i >= 0 ; i--)
+    for (int i = (int) copy.number.size() - 2; i >= 0; i--)
         o << std::setw(9) << std::setfill('0') << copy.number[i];
     return o;
 }
